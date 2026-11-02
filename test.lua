@@ -1,4 +1,4 @@
--- Prospecting Delta Android - Full (GUI First)
+-- Prospecting Delta Android - Tombol Pasti Muncul
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -12,22 +12,21 @@ local Settings = {
     Fly = false
 }
 
--- ========== GUI DULUAN ==========
+-- GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ProspectingGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 230, 0, 280)
-Frame.Position = UDim2.new(0.05, 0, 0.25, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+Frame.Size = UDim2.new(0, 220, 0, 320)
+Frame.Position = UDim2.new(0.05, 0, 0.2, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 Frame.BorderSizePixel = 0
 Frame.Parent = ScreenGui
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 10)
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 36)
+Title.Size = UDim2.new(1, 0, 0, 35)
 Title.BackgroundTransparency = 1
 Title.Text = "Prospecting"
 Title.TextColor3 = Color3.fromRGB(255, 200, 50)
@@ -35,45 +34,50 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 16
 Title.Parent = Frame
 
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 6)
-layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-layout.Parent = Frame
+-- Tombol dibuat manual (biar pasti kelihatan)
+local yPos = 40
 
-local function makeToggle(name, key)
+local function createButton(text, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 36)
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
+    btn.Size = UDim2.new(0.85, 0, 0, 36)
+    btn.Position = UDim2.new(0.075, 0, 0, yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
     btn.TextColor3 = Color3.new(1,1,1)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 14
-    btn.Text = name .. " : OFF"
+    btn.Text = text
     btn.Parent = Frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-
-    btn.MouseButton1Click:Connect(function()
-        Settings[key] = not Settings[key]
-        btn.Text = name .. (Settings[key] and " : ON" or " : OFF")
-        btn.BackgroundColor3 = Settings[key] and Color3.fromRGB(0, 150, 60) or Color3.fromRGB(40, 40, 48)
-    end)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    btn.MouseButton1Click:Connect(callback)
+    yPos = yPos + 42
+    return btn
 end
 
-makeToggle("Auto Dig", "AutoDig")
-makeToggle("Auto Pan", "AutoPan")
-makeToggle("Auto Treasure", "AutoTreasure")
-makeToggle("Fly", "Fly")
+local digBtn = createButton("Auto Dig : OFF", function()
+    Settings.AutoDig = not Settings.AutoDig
+    digBtn.Text = "Auto Dig : " .. (Settings.AutoDig and "ON" or "OFF")
+    digBtn.BackgroundColor3 = Settings.AutoDig and Color3.fromRGB(0, 150, 60) or Color3.fromRGB(45, 45, 55)
+end)
 
-local speedBtn = Instance.new("TextButton")
-speedBtn.Size = UDim2.new(0.9, 0, 0, 36)
-speedBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
-speedBtn.TextColor3 = Color3.new(1,1,1)
-speedBtn.Font = Enum.Font.GothamBold
-speedBtn.TextSize = 14
-speedBtn.Text = "Speed: 16"
-speedBtn.Parent = Frame
-Instance.new("UICorner", speedBtn).CornerRadius = UDim.new(0, 8)
+local panBtn = createButton("Auto Pan : OFF", function()
+    Settings.AutoPan = not Settings.AutoPan
+    panBtn.Text = "Auto Pan : " .. (Settings.AutoPan and "ON" or "OFF")
+    panBtn.BackgroundColor3 = Settings.AutoPan and Color3.fromRGB(0, 150, 60) or Color3.fromRGB(45, 45, 55)
+end)
 
-speedBtn.MouseButton1Click:Connect(function()
+local treasureBtn = createButton("Auto Treasure : OFF", function()
+    Settings.AutoTreasure = not Settings.AutoTreasure
+    treasureBtn.Text = "Auto Treasure : " .. (Settings.AutoTreasure and "ON" or "OFF")
+    treasureBtn.BackgroundColor3 = Settings.AutoTreasure and Color3.fromRGB(0, 150, 60) or Color3.fromRGB(45, 45, 55)
+end)
+
+local flyBtn = createButton("Fly : OFF", function()
+    Settings.Fly = not Settings.Fly
+    flyBtn.Text = "Fly : " .. (Settings.Fly and "ON" or "OFF")
+    flyBtn.BackgroundColor3 = Settings.Fly and Color3.fromRGB(0, 150, 60) or Color3.fromRGB(45, 45, 55)
+end)
+
+local speedBtn = createButton("Speed: 16", function()
     if Settings.WalkSpeed == 16 then
         Settings.WalkSpeed = 40
     elseif Settings.WalkSpeed == 40 then
@@ -84,9 +88,9 @@ speedBtn.MouseButton1Click:Connect(function()
     speedBtn.Text = "Speed: " .. Settings.WalkSpeed
 end)
 
-print("GUI Loaded!")
+print("GUI + Buttons Loaded!")
 
--- ========== FUNGSI ==========
+-- Fungsi dasar
 local function getChar()
     return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 end
@@ -138,31 +142,6 @@ task.spawn(function()
     end
 end)
 
--- Auto Treasure
-task.spawn(function()
-    while task.wait(1) do
-        if Settings.AutoTreasure then
-            pcall(function()
-                local root = getRoot()
-                if not root then return end
-                for _, obj in pairs(workspace:GetChildren()) do
-                    local n = obj.Name:lower()
-                    if n:find("geode") or n:find("treasure") then
-                        local part = obj:IsA("BasePart") and obj or (obj:IsA("Model") and obj.PrimaryPart)
-                        if part and (root.Position - part.Position).Magnitude < 80 then
-                            root.CFrame = part.CFrame + Vector3.new(0, 3, 0)
-                            task.wait(0.4)
-                            local prompt = part:FindFirstChildOfClass("ProximityPrompt")
-                            if prompt then fireproximityprompt(prompt) end
-                            break
-                        end
-                    end
-                end
-            end)
-        end
-    end
-end)
-
 -- WalkSpeed
 RunService.Heartbeat:Connect(function()
     local hum = getHum()
@@ -196,5 +175,3 @@ RunService.Heartbeat:Connect(function()
     if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir = dir - Vector3.new(0,1,0) end
     flyBV.Velocity = dir * 40
 end)
-
-print("All features loaded!")
